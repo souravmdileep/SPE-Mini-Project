@@ -1,36 +1,26 @@
 pipeline {
-    agent any
+    // Define that the build should run inside a Docker container
+    // This provides a clean environment with Python pre-installed
+    agent {
+        docker { image 'python:3.12-slim' }
+    }
 
     stages {
-        stage('Clean Workspace') {
-            steps {
-                cleanWs()
-            }
-        }
-
-        stage('Setup') {
-            steps {
-                sh 'apt-get update -y'
-                sh 'apt-get install -y python3 python3-pip python3-venv' // Added python3-venv
-            }
-        }
+        // We no longer need a 'Clean' or 'Setup' stage because the Docker agent
+        // provides a fresh, clean environment for every single build.
 
         stage('Checkout') {
             steps {
+                // This checks out the code into our temporary container
                 checkout scm
             }
         }
 
         stage('Test') {
             steps {
-                // 1. Create a virtual environment named 'venv'
-                sh 'python3 -m venv venv'
-
-                // 2. Use the pip from the virtual environment to install packages
-                sh 'venv/bin/python3 -m pip install -r requirements.txt'
-
-                // 3. Use the pytest from the virtual environment to run tests
-                sh 'venv/bin/python3 -m pytest -q'
+                // Use the python that comes with the container to install dependencies and run tests
+                sh 'python -m pip install -r requirements.txt'
+                sh 'python -m pytest -q'
             }
         }
     }
