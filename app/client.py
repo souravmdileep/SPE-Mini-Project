@@ -44,6 +44,6 @@ def main():
             # Catch any other unexpected errors
             print("An unexpected error occurred.")
 
-# This makes the script runnable
+
 if __name__ == "__main__":
     main()
