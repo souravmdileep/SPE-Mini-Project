@@ -1,23 +1,29 @@
 pipeline {
-    // Use any available Jenkins agent to run the pipeline
     agent any
 
-    // Define the stages of the pipeline
     stages {
-        // Stage 1: Get the code from GitHub
+        // Stage 1: Install Python and dependencies
+        stage('Setup') {
+            steps {
+                // Jenkins runs as the 'root' user in the container, so no 'sudo' is needed
+                sh 'apt-get update -y'
+                sh 'apt-get install -y python3 python3-pip'
+            }
+        }
+
+        // Stage 2: Get the code from GitHub
         stage('Checkout') {
             steps {
-                // This command checks out the code from the repository
                 checkout scm
             }
         }
 
-        // Stage 2: Run the tests
+        // Stage 3: Run the tests
         stage('Test') {
             steps {
-                // Run shell commands to install dependencies and run pytest
-                sh 'pip install -r requirements.txt'
-                sh 'pytest -q'
+                // Use 'python3 -m pip' to be specific
+                sh 'python3 -m pip install -r requirements.txt'
+                sh 'python3 -m pytest -q'
             }
         }
     }
