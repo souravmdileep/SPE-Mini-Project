@@ -6,7 +6,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Use an explicit checkout with the stored credential
+                // The explicit checkout with the stored credential
                 checkout([
                     $class: 'GitSCM',
                     branches: [[name: '*/main']],
@@ -22,6 +22,16 @@ pipeline {
             steps {
                 sh 'python -m pip install -r requirements.txt'
                 sh 'python -m pytest -q'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    // Build the image using your Dockerfile
+                    // and tag it with your username and the build number
+                    def appImage = docker.build("souravmdileep/sci-calc:${env.BUILD_NUMBER}")
+                }
             }
         }
     }
