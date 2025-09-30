@@ -1,12 +1,12 @@
 pipeline {
-    agent {
-        docker { image 'python:3.12-slim' }
-    }
+    // We define no global agent, so each stage can have its own.
+    agent none
 
     stages {
         stage('Checkout') {
+            // Run checkout on the main Jenkins node
+            agent any
             steps {
-                // The explicit checkout with the stored credential
                 checkout([
                     $class: 'GitSCM',
                     branches: [[name: '*/main']],
@@ -19,6 +19,10 @@ pipeline {
         }
 
         stage('Test') {
+            // Use the clean Python container just for testing
+            agent {
+                docker { image 'python:3.12-slim' }
+            }
             steps {
                 sh 'python -m pip install -r requirements.txt'
                 sh 'python -m pytest -q'
@@ -26,10 +30,10 @@ pipeline {
         }
 
         stage('Build Docker Image') {
+            // Run the build on the main Jenkins node, which has Docker installed
+            agent any
             steps {
                 script {
-                    // Build the image using your Dockerfile
-                    // and tag it with your username and the build number
                     def appImage = docker.build("souravmdileep/sci-calc:${env.BUILD_NUMBER}")
                 }
             }
