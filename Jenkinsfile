@@ -1,10 +1,11 @@
+// Define a variable to hold the built image, so it can be shared between stages
+def appImage
+
 pipeline {
-    // We define no global agent, so each stage can have its own.
     agent none
 
     stages {
         stage('Checkout') {
-            // Run checkout on the main Jenkins node
             agent any
             steps {
                 checkout([
@@ -19,7 +20,6 @@ pipeline {
         }
 
         stage('Test') {
-            // Use the clean Python container just for testing
             agent {
                 docker { image 'python:3.12-slim' }
             }
@@ -30,11 +30,23 @@ pipeline {
         }
 
         stage('Build Docker Image') {
-            // Run the build on the main Jenkins node, which has Docker installed
             agent any
             steps {
                 script {
-                    def appImage = docker.build("souravmdileep/sci-calc:${env.BUILD_NUMBER}")
+                    // Build the image and assign it to the 'appImage' variable
+                    appImage = docker.build("souravmdileep/sci-calc:${env.BUILD_NUMBER}")
+                }
+            }
+        }
+        
+        stage('Push Docker Image') {
+            agent any
+            steps {
+                script {
+                    // Use the stored credentials to log in to Docker Hub and push the image
+                    docker.withRegistry('', 'dockerhub-credentials') {
+                        appImage.push()
+                    }
                 }
             }
         }
